@@ -7,16 +7,26 @@ Order=10
 ==================== */
 defined('COT_CODE') or die('Wrong URL');
 
-$tpl_arr = array('page', 'list');
+require_once cot_langfile('cattemplateswitcher', 'plug');
 
 $mode = cot_import('mode', 'R', 'ALP');
-require_once cot_langfile('cattemplateswitcher', 'plug');
+
+$tpl_arr = array('page', 'list');
 $modes = explode(',', $cfg['plugin']['cattemplateswitcher']['mode']);
-if (!empty($mode) && in_array($mode, $modes) && $mode != 'default') $_SESSION[$c]['cat_tpl_mode'] = $mode;
-elseif($mode == 'default') unset($_SESSION[$c]['cat_tpl_mode']);
-if (isset($_SESSION[$c]['cat_tpl_mode']) && !empty($_SESSION[$c]['cat_tpl_mode']))
+if ($cfg['plugin']['cattemplateswitcher']['global_save']) $saved_mode = &$_SESSION[$c]['cat_tpl_mode'];
+else $saved_mode = &$_SESSION['cat_tpl_mode'];
+
+if (!empty($mode) && in_array($mode, $modes) && $mode != 'default') $saved_mode = $mode;
+elseif($mode == 'default')
 {
-	$mode = $_SESSION[$c]['cat_tpl_mode'];
+	if ($cfg['plugin']['cattemplateswitcher']['global_save']) unset($_SESSION[$c]['cat_tpl_mode']);
+	else unset($_SESSION['cat_tpl_mode']);
+	unset($saved_mode);
+}
+
+if (isset($saved_mode) && !empty($saved_mode))
+{
+	$mode = $saved_mode;
 	$tpl_arr[] = $mode;
 }
 else $mode = 'default';
@@ -24,5 +34,3 @@ else $mode = 'default';
 if (!empty($cat['tpl'])) $tpl_arr[] = $cat['tpl'];
 
 $mskin = cot_tplfile($tpl_arr);
-
-?>
